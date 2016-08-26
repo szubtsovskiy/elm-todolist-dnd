@@ -70,8 +70,7 @@ view model =
     styles = model.styles
   in
     div [ ]
-    [ div [ class styles.container ] (map (todo styles) items)
-    , input
+    [ input
       [ type' "text"
       , class styles.input
       , placeholder "To do..."
@@ -79,6 +78,7 @@ view model =
       , onKeyDown KeyDown
       , value model.current
       ] []
+    , div [ class styles.container ] (map (todo styles) items)
     ]
 
 todo : Styles -> String -> Html Action
