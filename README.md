@@ -34,6 +34,7 @@ Check then the `dist` folder.
 ### Credits
 
 Fred Yankowski, for [localstorage](https://github.com/fredcy/localstorage)
+
 Peter Morawiec, for [elm-webpack-starter](https://github.com/moarwick/elm-webpack-starter).
 
 ### License
