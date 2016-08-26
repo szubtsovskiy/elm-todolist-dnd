@@ -1,0 +1,44 @@
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/variables";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/mixins/vendor-prefixes";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/mixins/tab-focus";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/mixins/forms";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/mixins/grid";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/mixins/clearfix";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/wells";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/forms";
+
+$fa-font-path: 'font-awesome/fonts';
+@import '~font-awesome/scss/font-awesome';
+
+.container {
+  @extend .well;
+
+  height: 500px;
+  width: 100%;
+  overflow: auto;
+  margin-bottom: 1px;
+  border-radius: 0;
+
+  fieldset:nth-child(1) {
+    margin-top: 40px;
+  }
+}
+
+.item {
+  display: flex;
+  justify-content: flex-start;
+  background-color: green;
+  width: 100%;
+  height: 60px;
+  margin: 5px 0;
+  padding: 5px;
+
+  span {
+    margin: auto 0;
+  }
+}
+
+.input {
+  @extend .form-control;
+  border-radius: 0;
+}
