@@ -5,7 +5,13 @@ import Html.App as Html
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, on, keyCode)
 import Json.Decode as Json
+import Json.Encode as Encode
 import List exposing (map)
+
+-- TODO next: add function to create data-* attributes (requires native code)
+-- TODO next: implement gif-like drag and drop in JavaScript (need to test which HTML markup to use/how to mark empty slots and so on)
+-- TODO next: implement gif-like drag and drop items
+-- TODO next: implement gif-like drag and drop subtasks
 
 -- MAIN
 
@@ -39,6 +45,7 @@ type Action
   = NoOp
   | SetCurrent String
   | KeyDown Int
+  | DragStart String
 
 
 update : Action -> Model -> (Model, Cmd Action)
@@ -60,6 +67,12 @@ update action model =
 
         _ ->
           (model, Cmd.none)
+
+    DragStart item ->
+      let
+        _ = Debug.log "DragStart" item
+      in
+        (model, Cmd.none)
 
 -- VIEW
 
@@ -83,10 +96,13 @@ view model =
 
 todo : Styles -> String -> Html Action
 todo styles item =
-  div [ class styles.item, draggable "true", dropzone "true" ]
+  div [ class styles.item, id item, draggable "true", onDragStart DragStart ]
   [ span [] [ text item ]
   ]
 
+onDragStart : (String -> Action) -> Attribute Action
+onDragStart tagger =
+  on "dragstart" (Json.map tagger (Json.at ["target", "id"] Json.string))
 
 onKeyDown : (Int -> action) -> Attribute action
 onKeyDown tagger =
