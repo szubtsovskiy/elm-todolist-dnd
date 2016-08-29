@@ -9,6 +9,7 @@ app.ports.inits.subscribe(function(elementId) {
 
     element.addEventListener("dragstart", function(event) {
       event.dataTransfer.setData("text/plain", elementId);
+      app.ports.dragStarts.send(elementId);
     });
 
     element.addEventListener("dragover", function(event) {
@@ -22,7 +23,7 @@ app.ports.inits.subscribe(function(elementId) {
       var itemDroppedOn = document.getElementById(elementId);
       console.log(`drop ${itemBeingDraggedId} on ${elementId}`);
       event.target.parentElement.insertBefore(itemBeingDragged, itemDroppedOn);
-    })
+    });
 
   } else {
     console.error("No such element", elementId);

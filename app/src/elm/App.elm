@@ -22,7 +22,7 @@ main =
     { init = init
     , view = view
     , update = update
-    , subscriptions = (\x -> Sub.none)
+    , subscriptions = subscriptions
     }
 
 -- MODEL
@@ -46,6 +46,7 @@ type Action
   = NoOp
   | SetCurrent String
   | KeyDown Int
+  | DragStart String
 
 
 update : Action -> Model -> (Model, Cmd Action)
@@ -67,6 +68,12 @@ update action model =
 
         _ ->
           (model, Cmd.none)
+
+    DragStart id ->
+      let
+        _ = Debug.log "DragStart" id
+      in
+        (model, Cmd.none)
 
 
 -- VIEW
@@ -105,6 +112,13 @@ itemId id =
 onKeyDown : (Int -> action) -> Attribute action
 onKeyDown tagger =
   on "keydown" (Json.map tagger keyCode)
+
+
+-- SUBSCRIPTIONS
+
+subscriptions : Model -> Sub Action
+subscriptions model =
+  DragDrop.onDragStart DragStart
 
 
 -- INIT
