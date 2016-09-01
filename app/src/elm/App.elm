@@ -12,6 +12,8 @@ import Helpers.DragDrop as DragDrop
 -- TODO next: add real item objects with id and title fields
 -- TODO next: implement gif-like drag and drop items
 -- TODO next: add subtasks
+-- TODO next: implement adding new items
+-- TODO next: save items in local storage
 
 -- MAIN
 
@@ -35,8 +37,15 @@ type alias Styles =
   , input : String
   }
 
+
+type alias Item =
+  { id : String
+  , title : String
+  }
+
+
 type alias Model =
-  { items : List String
+  { items : List (Maybe Item)
   , current : String
   , styles : Styles
   }
@@ -108,16 +117,15 @@ groupTitle model =
   in
     div [ class styles.groupTitle ] [ text "Group 1" ]
 
-todo : Styles -> String -> Html Action
-todo styles item =
-  div [ class styles.item, id (itemId item), draggable "true" ]
-  [ span [] [ text item ]
-  ]
-
-
-itemId : String -> String
-itemId id =
-  "_szubtsovskiy$elm_todolist_dnd$" ++ id
+todo : Styles -> Maybe Item -> Html Action
+todo styles maybeItem =
+  case maybeItem of
+     Just item ->
+      div [ class styles.item, id item.id, draggable "true" ]
+      [ span [] [ text item.title ]
+      ]
+     Nothing ->
+      div [] []
 
 
 onKeyDown : (Int -> action) -> Attribute action
@@ -137,10 +145,13 @@ subscriptions model =
 init : Styles -> (Model, Cmd Action)
 init styles =
   let
-    items = [ "First", "Second", "Third" ]
+    items = [ Item "_szubtsovskiy$elm_todolist_dnd$item$1" "First"
+            , Item "_szubtsovskiy$elm_todolist_dnd$item$2" "Second"
+            , Item "_szubtsovskiy$elm_todolist_dnd$item$3" "Third"
+            ]
   in
-    { items = items
+    { items = List.map Just items
     , current = ""
     , styles = styles
-    } ! List.map DragDrop.init (map itemId items)
+    } ! List.map DragDrop.init (map (.id) items)
 
