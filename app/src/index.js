@@ -18,11 +18,9 @@ app.ports.inits.subscribe(function(elementId) {
     });
 
     element.addEventListener("drop", function(event) {
-      var itemBeingDraggedId = event.dataTransfer.getData('text/plain');
-      var itemBeingDragged = document.getElementById(itemBeingDraggedId);
-      var itemDroppedOn = document.getElementById(elementId);
-      console.log(`drop ${itemBeingDraggedId} on ${elementId}`);
-      event.target.parentElement.insertBefore(itemBeingDragged, itemDroppedOn);
+      var draggedId = event.dataTransfer.getData('text/plain');
+      var dropTargetId = event.target.id;
+      console.log(`drop ${draggedId} on ${dropTargetId}`);
     });
 
   } else {
