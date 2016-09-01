@@ -12,20 +12,64 @@ $fa-font-path: 'font-awesome/fonts';
 @import '~font-awesome/scss/font-awesome';
 
 .container {
-  height: 500px;
-  width: 100%;
-  overflow: auto;
   margin-top: 15px;
+  width: 600px;
+
+  fieldset {
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-top: 1px lightgray solid;
+    width: 100%;
+  }
+}
+
+legend {
+  text-transform: uppercase;
+  text-align: center;
+  color: lightgray;
+  font-size: 0.75em;
+}
+
+.group {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.groupTitle {
+  background: darkgray;
+  padding: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: white;
+  font-size: 0.75em;
+  letter-spacing: 0.1em;
 }
 
 .item {
-  @extend .alert, .alert-info;
+  background: white;
+  border-bottom: 1px lightgray solid;
+  height: 40px;
   display: flex;
   justify-content: flex-start;
+  align-items: center;
+  padding: 5px 15px;
+  width: 100%;
+}
 
-  span {
-    margin: auto 0;
-  }
+.subTask {
+  width: calc(100% - 30px);
+  margin-left: 30px;
+}
+
+.dragged {
+  background-color: lightgray;
+  opacity: 0.5;
+  color: transparent;
+}
+
+.hidden {
+  display: none;
 }
 
 .input {

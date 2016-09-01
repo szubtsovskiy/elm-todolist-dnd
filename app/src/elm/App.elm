@@ -10,9 +10,8 @@ import Helpers.DragDrop as DragDrop
 
 -- TODO next: send drop feedback to Elm to apply changes to model
 -- TODO next: add real item objects with id and title fields
--- TODO next: implement gif-like drag and drop in JavaScript (need to test which HTML markup to use/how to mark empty slots and so on)
 -- TODO next: implement gif-like drag and drop items
--- TODO next: implement gif-like drag and drop subtasks
+-- TODO next: add subtasks
 
 -- MAIN
 
@@ -30,6 +29,9 @@ main =
 type alias Styles =
   { container : String
   , item : String
+  , subTask : String
+  , group : String
+  , groupTitle : String
   , input : String
   }
 
@@ -84,18 +86,27 @@ view model =
     items = model.items
     styles = model.styles
   in
-    div [ ]
-    [ input
-      [ type' "text"
-      , class styles.input
-      , placeholder "To do..."
-      , onInput SetCurrent
-      , onKeyDown KeyDown
-      , value model.current
-      ] []
-    , div [ class styles.container ] (map (todo styles) items)
+    div [ class styles.container ]
+    [ fieldset []
+      [ legend [] [ text "Week 35" ]
+      , input
+        [ type' "text"
+        , class styles.input
+        , placeholder "To do..."
+        , onInput SetCurrent
+        , onKeyDown KeyDown
+        , value model.current
+        ] []
+      , div [ class styles.group ] ((groupTitle model) :: (map (todo styles) items))
+      ]
     ]
 
+groupTitle : Model -> Html Action
+groupTitle model =
+  let
+    styles = model.styles
+  in
+    div [ class styles.groupTitle ] [ text "Group 1" ]
 
 todo : Styles -> String -> Html Action
 todo styles item =
