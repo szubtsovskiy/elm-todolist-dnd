@@ -9,7 +9,7 @@ app.ports.inits.subscribe(function(elementId) {
 
     element.addEventListener("dragstart", function(event) {
       event.dataTransfer.setData("text/plain", elementId);
-      app.ports.dragStarts.send(elementId);
+      app.ports.dragStarts.send({draggedItem: elementId});
     });
 
     element.addEventListener("dragover", function(event) {

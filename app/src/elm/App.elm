@@ -48,7 +48,7 @@ type Action
   = NoOp
   | SetCurrent String
   | KeyDown Int
-  | DragStart String
+  | DragStart DragDrop.Model
 
 
 update : Action -> Model -> (Model, Cmd Action)
@@ -71,9 +71,9 @@ update action model =
         _ ->
           (model, Cmd.none)
 
-    DragStart id ->
+    DragStart dndModel ->
       let
-        _ = Debug.log "DragStart" id
+        _ = Debug.log "DragStart" dndModel.draggedItem
       in
         (model, Cmd.none)
 
