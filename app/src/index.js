@@ -8,8 +8,8 @@ app.ports.inits.subscribe(function(elementId) {
   if ( element ) {
 
     element.addEventListener("dragstart", function(event) {
-      event.dataTransfer.setData("text/plain", elementId);
       app.ports.dragStarts.send({draggedItem: elementId});
+      event.dataTransfer.setData("text/plain", elementId);
     });
 
     element.addEventListener("dragover", function(event) {

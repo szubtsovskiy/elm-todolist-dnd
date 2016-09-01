@@ -8,8 +8,7 @@ import Json.Decode as Json
 import List exposing (map)
 import Helpers.DragDrop as DragDrop
 
--- TODO next: send drop feedback to Elm to apply changes to model
--- TODO next: add real item objects with id and title fields
+-- TODO next: send drag/drop feedback to Elm to apply changes to model
 -- TODO next: implement gif-like drag and drop items
 -- TODO next: add subtasks
 -- TODO next: implement adding new items
@@ -38,14 +37,16 @@ type alias Styles =
   }
 
 
-type alias Item =
+type alias ViewItem =
   { id : String
   , title : String
+  , empty : Bool
+  , dragged : Bool
   }
 
 
 type alias Model =
-  { items : List (Maybe Item)
+  { items : List ViewItem
   , current : String
   , styles : Styles
   }
@@ -83,8 +84,11 @@ update action model =
     DragStart dndModel ->
       let
         _ = Debug.log "DragStart" dndModel.draggedItem
+        id = dndModel.draggedItem
+        items = model.items
+        newItems = List.map (\item -> if item.id == id then {item | dragged = True} else item) items
       in
-        (model, Cmd.none)
+        ({model | items = newItems}, Cmd.none)
 
 
 -- VIEW
@@ -117,15 +121,14 @@ groupTitle model =
   in
     div [ class styles.groupTitle ] [ text "Group 1" ]
 
-todo : Styles -> Maybe Item -> Html Action
-todo styles maybeItem =
-  case maybeItem of
-     Just item ->
-      div [ class styles.item, id item.id, draggable "true" ]
-      [ span [] [ text item.title ]
+todo : Styles -> ViewItem -> Html Action
+todo styles item =
+  div [ id item.id
+      , class styles.item
+      , draggable "true"
       ]
-     Nothing ->
-      div [] []
+  [ span [] [ text item.title ]
+  ]
 
 
 onKeyDown : (Int -> action) -> Attribute action
@@ -145,12 +148,12 @@ subscriptions model =
 init : Styles -> (Model, Cmd Action)
 init styles =
   let
-    items = [ Item "_szubtsovskiy$elm_todolist_dnd$item$1" "First"
-            , Item "_szubtsovskiy$elm_todolist_dnd$item$2" "Second"
-            , Item "_szubtsovskiy$elm_todolist_dnd$item$3" "Third"
+    items = [ ViewItem "_szubtsovskiy$elm_todolist_dnd$item$1" "First" False False
+            , ViewItem "_szubtsovskiy$elm_todolist_dnd$item$2" "Second" False False
+            , ViewItem "_szubtsovskiy$elm_todolist_dnd$item$3" "Third" False False
             ]
   in
-    { items = List.map Just items
+    { items = items
     , current = ""
     , styles = styles
     } ! List.map DragDrop.init (map (.id) items)
