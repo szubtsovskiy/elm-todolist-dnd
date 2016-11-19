@@ -8,12 +8,12 @@ import List
 import Mouse
 import String
 
+
 -- TODO next: send drag/drop feedback to Elm to apply changes to model
 -- TODO next: implement gif-like drag and drop items
 -- TODO next: implement adding new items
 -- TODO next: save items in local storage
 
--- MAIN
 
 main : Program Styles Model Msg
 main =
@@ -24,7 +24,6 @@ main =
     , subscriptions = subscriptions
     }
 
--- MODEL
 
 type alias Styles =
   { container : String
@@ -35,13 +34,20 @@ type alias Styles =
   , input : String
   }
 
+
 type alias ID =
   Int
+
+
+type Mode
+  = Default
+  | Dragged Mouse.Position
+
 
 type alias ViewItem =
   { id : ID
   , title : String
-  , dragged : Bool
+  , mode : Mode
   }
 
 
@@ -59,101 +65,113 @@ type Msg
   | DragStart ID Mouse.Position
 
 
-init : Styles -> (Model, Cmd Msg)
+init : Styles -> ( Model, Cmd Msg )
 init styles =
   let
-    items = [ ViewItem 1 "First" False
-            , ViewItem 2 "Second" False
-            , ViewItem 3 "Third" False
-            ]
+    items =
+      [ ViewItem 1 "First" Default
+      , ViewItem 2 "Second" Default
+      , ViewItem 3 "Third" Default
+      ]
+
+    model =
+      { items = items
+      , current = ""
+      , styles = styles
+      }
   in
-    { items = items
-    , current = ""
-    , styles = styles
-    } ! [Cmd.none]
+    model ! [ Cmd.none ]
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
 
-
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update action model =
   case action of
     NoOp ->
-      model ! [Cmd.none]
+      model ! [ Cmd.none ]
 
     SetCurrent value ->
-      {model | current = value} ! [Cmd.none]
+      { model | current = value } ! [ Cmd.none ]
 
     KeyDown code ->
       case code of
         13 ->
-          {model | current = ""} ! [Cmd.none]
+          { model | current = "" } ! [ Cmd.none ]
 
         27 ->
-          {model | current = ""} ! [Cmd.none]
+          { model | current = "" } ! [ Cmd.none ]
 
         _ ->
-          model ! [Cmd.none]
+          model ! [ Cmd.none ]
 
     DragStart id position ->
       let
         _ =
-          Debug.log "DragStart" (toString (id, position))
+          Debug.log "DragStart" (toString ( id, position ))
       in
-        model ! [Cmd.none]
+        model ! [ Cmd.none ]
 
 
 
 -- VIEW
 
+
 view : Model -> Html Msg
 view model =
   let
-    items = model.items
-    styles = model.styles
+    items =
+      model.items
+
+    styles =
+      model.styles
   in
     div [ class styles.container ]
-    [ fieldset []
-      [ legend [] [ text "Week 47" ]
-      , input
-        [ type_ "text"
-        , class styles.input
-        , placeholder "To do..."
-        , onInput SetCurrent
-        , onKeyDown KeyDown
-        , value model.current
-        ] []
-      , div [ class styles.group ] ((groupTitle model) :: (List.map (todo styles) items))
+      [ fieldset []
+          [ legend [] [ text "Week 47" ]
+          , input
+              [ type_ "text"
+              , class styles.input
+              , placeholder "To do..."
+              , onInput SetCurrent
+              , onKeyDown KeyDown
+              , value model.current
+              ]
+              []
+          , div [ class styles.group ] ((groupTitle model) :: (List.map (todo styles) items))
+          ]
       ]
-    ]
+
 
 groupTitle : Model -> Html Msg
 groupTitle model =
   let
-    styles = model.styles
+    styles =
+      model.styles
   in
     div [ class styles.groupTitle ] [ text "Group 1" ]
 
+
 todo : Styles -> ViewItem -> Html Msg
 todo styles item =
-  div [ dataItemId item.id
-      , class styles.item
-      , onMouseDown
-      ]
-  [ span [] [ text item.title ]
-  ]
+  div
+    [ dataItemId item.id, class styles.item, onMouseDown ]
+    [ span [] [ text item.title ]
+    ]
 
 
 onKeyDown : (Int -> action) -> Attribute action
 onKeyDown tagger =
   on "keydown" (Json.map tagger keyCode)
 
+
 onMouseDown : Attribute Msg
 onMouseDown =
   on "mousedown" (Json.map2 DragStart dataItemIdDecoder positionDecoder)
+
 
 dataItemId : Int -> Attribute Msg
 dataItemId id =
@@ -165,7 +183,6 @@ dataItemIdDecoder =
   let
     toInt s =
       Result.withDefault 0 (String.toInt s)
-
   in
     Json.at [ "target", "dataset", "itemId" ] (Json.map toInt Json.string)
 
