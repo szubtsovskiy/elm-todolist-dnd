@@ -1,22 +1,19 @@
 module App exposing (main)
 
 import Html exposing (..)
-import Html.App as Html
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, on, keyCode)
 import Json.Decode as Json
-import List exposing (map)
-import Helpers.DragDrop as DragDrop
+import List
 
 -- TODO next: send drag/drop feedback to Elm to apply changes to model
 -- TODO next: implement gif-like drag and drop items
--- TODO next: add subtasks
 -- TODO next: implement adding new items
 -- TODO next: save items in local storage
 
 -- MAIN
 
-main : Program Styles
+main : Program Styles Model Msg
 main =
   Html.programWithFlags
     { init = init
@@ -54,14 +51,13 @@ type alias Model =
 
 -- UPDATE
 
-type Action
+type Msg
   = NoOp
   | SetCurrent String
   | KeyDown Int
-  | DragStart DragDrop.Model
 
 
-update : Action -> Model -> (Model, Cmd Action)
+update : Msg -> Model -> (Model, Cmd Msg)
 update action model =
   case action of
     NoOp ->
@@ -81,19 +77,11 @@ update action model =
         _ ->
           (model, Cmd.none)
 
-    DragStart dndModel ->
-      let
-        _ = Debug.log "DragStart" dndModel.draggedItem
-        id = dndModel.draggedItem
-        items = model.items
-        newItems = List.map (\item -> if item.id == id then {item | dragged = True} else item) items
-      in
-        ({model | items = newItems}, Cmd.none)
 
 
 -- VIEW
 
-view : Model -> Html Action
+view : Model -> Html Msg
 view model =
   let
     items = model.items
@@ -101,27 +89,27 @@ view model =
   in
     div [ class styles.container ]
     [ fieldset []
-      [ legend [] [ text "Week 35" ]
+      [ legend [] [ text "Week 47" ]
       , input
-        [ type' "text"
+        [ type_ "text"
         , class styles.input
         , placeholder "To do..."
         , onInput SetCurrent
         , onKeyDown KeyDown
         , value model.current
         ] []
-      , div [ class styles.group ] ((groupTitle model) :: (map (todo styles) items))
+      , div [ class styles.group ] ((groupTitle model) :: (List.map (todo styles) items))
       ]
     ]
 
-groupTitle : Model -> Html Action
+groupTitle : Model -> Html Msg
 groupTitle model =
   let
     styles = model.styles
   in
     div [ class styles.groupTitle ] [ text "Group 1" ]
 
-todo : Styles -> ViewItem -> Html Action
+todo : Styles -> ViewItem -> Html Msg
 todo styles item =
   div [ id item.id
       , class styles.item
@@ -138,14 +126,14 @@ onKeyDown tagger =
 
 -- SUBSCRIPTIONS
 
-subscriptions : Model -> Sub Action
+subscriptions : Model -> Sub Msg
 subscriptions model =
-  DragDrop.onDragStart DragStart
+  Sub.none
 
 
 -- INIT
 
-init : Styles -> (Model, Cmd Action)
+init : Styles -> (Model, Cmd Msg)
 init styles =
   let
     items = [ ViewItem "_szubtsovskiy$elm_todolist_dnd$item$1" "First" False False
@@ -156,5 +144,5 @@ init styles =
     { items = items
     , current = ""
     , styles = styles
-    } ! List.map DragDrop.init (map (.id) items)
+    } ! [Cmd.none]
 
