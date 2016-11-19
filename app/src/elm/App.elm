@@ -5,6 +5,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, on, keyCode)
 import Json.Decode as Json
 import List
+import Mouse
+import String
 
 -- TODO next: send drag/drop feedback to Elm to apply changes to model
 -- TODO next: implement gif-like drag and drop items
@@ -33,11 +35,12 @@ type alias Styles =
   , input : String
   }
 
+type alias ID =
+  Int
 
 type alias ViewItem =
-  { id : String
+  { id : ID
   , title : String
-  , empty : Bool
   , dragged : Bool
   }
 
@@ -49,33 +52,58 @@ type alias Model =
   }
 
 
--- UPDATE
-
 type Msg
   = NoOp
   | SetCurrent String
   | KeyDown Int
+  | DragStart ID Mouse.Position
+
+
+init : Styles -> (Model, Cmd Msg)
+init styles =
+  let
+    items = [ ViewItem 1 "First" False
+            , ViewItem 2 "Second" False
+            , ViewItem 3 "Third" False
+            ]
+  in
+    { items = items
+    , current = ""
+    , styles = styles
+    } ! [Cmd.none]
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
+
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update action model =
   case action of
     NoOp ->
-      (model, Cmd.none)
+      model ! [Cmd.none]
 
     SetCurrent value ->
-      ({model | current = value}, Cmd.none)
+      {model | current = value} ! [Cmd.none]
 
     KeyDown code ->
       case code of
         13 ->
-          ({model | current = ""}, Cmd.none)
+          {model | current = ""} ! [Cmd.none]
 
         27 ->
-          ({model | current = ""}, Cmd.none)
+          {model | current = ""} ! [Cmd.none]
 
         _ ->
-          (model, Cmd.none)
+          model ! [Cmd.none]
+
+    DragStart id position ->
+      let
+        _ =
+          Debug.log "DragStart" (toString (id, position))
+      in
+        model ! [Cmd.none]
 
 
 
@@ -111,9 +139,9 @@ groupTitle model =
 
 todo : Styles -> ViewItem -> Html Msg
 todo styles item =
-  div [ id item.id
+  div [ dataItemId item.id
       , class styles.item
-      , draggable "true"
+      , onMouseDown
       ]
   [ span [] [ text item.title ]
   ]
@@ -123,26 +151,25 @@ onKeyDown : (Int -> action) -> Attribute action
 onKeyDown tagger =
   on "keydown" (Json.map tagger keyCode)
 
+onMouseDown : Attribute Msg
+onMouseDown =
+  on "mousedown" (Json.map2 DragStart dataItemIdDecoder positionDecoder)
 
--- SUBSCRIPTIONS
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Sub.none
+dataItemId : Int -> Attribute Msg
+dataItemId id =
+  attribute "data-item-id" (toString id)
 
 
--- INIT
-
-init : Styles -> (Model, Cmd Msg)
-init styles =
+dataItemIdDecoder : Json.Decoder ID
+dataItemIdDecoder =
   let
-    items = [ ViewItem "_szubtsovskiy$elm_todolist_dnd$item$1" "First" False False
-            , ViewItem "_szubtsovskiy$elm_todolist_dnd$item$2" "Second" False False
-            , ViewItem "_szubtsovskiy$elm_todolist_dnd$item$3" "Third" False False
-            ]
-  in
-    { items = items
-    , current = ""
-    , styles = styles
-    } ! [Cmd.none]
+    toInt s =
+      Result.withDefault 0 (String.toInt s)
 
+  in
+    Json.at [ "target", "dataset", "itemId" ] (Json.map toInt Json.string)
+
+
+positionDecoder : Json.Decoder Mouse.Position
+positionDecoder =
+  Mouse.position
