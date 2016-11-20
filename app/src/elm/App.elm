@@ -129,8 +129,39 @@ update action model =
       case model.draggedItem of
         Just ( item, orig, dragStarted ) ->
           let
+            newY =
+              orig.y + xy.y - dragStarted.y
+
+            newTopLeft =
+              if newY > (List.length model.items) * 42 + 2 then
+                Position orig.x ((List.length model.items) * 42 + 2)
+              else if newY >= 2 then
+                Position orig.x newY
+              else
+                Position orig.x 2
+
             newItem =
-              { item | topLeft = Position orig.x (orig.y + xy.y - dragStarted.y) }
+              { item | topLeft = newTopLeft }
+
+            items =
+              List.map
+                (\i ->
+                  if newTopLeft.y < i.topLeft.y + 20 then
+                    let
+                      _ =
+                        Debug.log "Time to shift this one" (toString i.id)
+                    in
+                      i
+                  else if newTopLeft.y < i.topLeft.y + 40 then
+                    let
+                      _ =
+                        Debug.log "Just over" (toString i.id)
+                    in
+                      i
+                  else
+                    i
+                )
+                model.items
           in
             { model | draggedItem = Just ( newItem, orig, dragStarted ) } ! [ Cmd.none ]
 
