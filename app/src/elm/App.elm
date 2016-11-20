@@ -5,14 +5,13 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, on, keyCode)
 import Json.Decode as Json
 import List
-import Mouse
+import Mouse exposing (Position)
 import String
 
 
 -- TODO next: send drag/drop feedback to Elm to apply changes to model
 -- TODO next: implement gif-like drag and drop items
 -- TODO next: implement adding new items
--- TODO next: save items in local storage
 
 
 main : Program Styles Model Msg
@@ -40,8 +39,8 @@ type alias ID =
 
 
 type Mode
-  = Default
-  | Dragged Mouse.Position
+  = Default Position
+  | Dragging Position Position Position
 
 
 type alias ViewItem =
@@ -53,30 +52,30 @@ type alias ViewItem =
 
 type alias Model =
   { items : List ViewItem
-  , current : String
+  , newItemTitle : String
   , styles : Styles
   }
 
 
 type Msg
   = NoOp
-  | SetCurrent String
+  | SetNewItemTitle String
   | KeyDown Int
-  | DragStart ID Mouse.Position
+  | DragStart ID Position
 
 
 init : Styles -> ( Model, Cmd Msg )
 init styles =
   let
     items =
-      [ ViewItem 1 "First" Default
-      , ViewItem 2 "Second" Default
-      , ViewItem 3 "Third" Default
+      [ ViewItem 1 "First" (Default (Position 0 2))
+      , ViewItem 2 "Second" (Default (Position 0 44))
+      , ViewItem 3 "Third" (Default (Position 0 86))
       ]
 
     model =
       { items = items
-      , current = ""
+      , newItemTitle = ""
       , styles = styles
       }
   in
@@ -94,16 +93,16 @@ update action model =
     NoOp ->
       model ! [ Cmd.none ]
 
-    SetCurrent value ->
-      { model | current = value } ! [ Cmd.none ]
+    SetNewItemTitle value ->
+      { model | newItemTitle = value } ! [ Cmd.none ]
 
     KeyDown code ->
       case code of
         13 ->
-          { model | current = "" } ! [ Cmd.none ]
+          { model | newItemTitle = "" } ! [ Cmd.none ]
 
         27 ->
-          { model | current = "" } ! [ Cmd.none ]
+          { model | newItemTitle = "" } ! [ Cmd.none ]
 
         _ ->
           model ! [ Cmd.none ]
@@ -118,6 +117,16 @@ update action model =
 
 
 -- VIEW
+
+
+(=>) : String -> String -> ( String, String )
+(=>) =
+  (,)
+
+
+px : Int -> String
+px amount =
+  (toString amount) ++ "px"
 
 
 view : Model -> Html Msg
@@ -136,12 +145,16 @@ view model =
               [ type_ "text"
               , class styles.input
               , placeholder "To do..."
-              , onInput SetCurrent
+              , onInput SetNewItemTitle
               , onKeyDown KeyDown
-              , value model.current
+              , value model.newItemTitle
               ]
               []
-          , div [ class styles.group ] ((groupTitle model) :: (List.map (todo styles) items))
+          , div [ class styles.group ]
+              [ groupTitle model
+              , div [ style [ "position" => "absolute", "width" => "100%" ] ]
+                  (List.map (todo styles) items)
+              ]
           ]
       ]
 
@@ -152,15 +165,24 @@ groupTitle model =
     styles =
       model.styles
   in
-    div [ class styles.groupTitle ] [ text "Group 1" ]
+    div [ class styles.groupTitle ] [ text "Monday" ]
 
 
 todo : Styles -> ViewItem -> Html Msg
 todo styles item =
-  div
-    [ dataItemId item.id, class styles.item, onMouseDown ]
-    [ span [] [ text item.title ]
-    ]
+  let
+    position =
+      getPosition item
+
+    inlineStyles =
+      [ "position" => "absolute"
+      , "left" => px position.x
+      , "top" => px position.y
+      ]
+  in
+    div [ dataItemId item.id, onMouseDown, class styles.item, style inlineStyles ]
+      [ span [] [ text item.title ]
+      ]
 
 
 onKeyDown : (Int -> action) -> Attribute action
@@ -187,6 +209,16 @@ dataItemIdDecoder =
     Json.at [ "target", "dataset", "itemId" ] (Json.map toInt Json.string)
 
 
-positionDecoder : Json.Decoder Mouse.Position
+positionDecoder : Json.Decoder Position
 positionDecoder =
   Mouse.position
+
+
+getPosition : ViewItem -> Position
+getPosition item =
+  case item.mode of
+    Default position ->
+      position
+
+    Dragging current dragStarted draggedTo ->
+      Position current.x (current.y + draggedTo.y - dragStarted.y)
