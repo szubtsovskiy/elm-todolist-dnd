@@ -29,6 +29,7 @@ legend {
   text-align: center;
   color: lightgray;
   font-size: 0.75em;
+  user-select: none;
 }
 
 .group {
@@ -44,6 +45,7 @@ legend {
   color: white;
   font-size: 0.75em;
   letter-spacing: 0.1em;
+  user-select: none;
 }
 
 .item {
@@ -56,6 +58,7 @@ legend {
   padding: 5px 15px;
   width: 100%;
   cursor: move;
+  user-select: none;
 }
 
 .subTask {

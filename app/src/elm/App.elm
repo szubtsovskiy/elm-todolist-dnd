@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, on, keyCode)
 import Json.Decode as Json
-import List
+import Dict exposing (Dict)
 import Mouse exposing (Position)
 import String
 
@@ -34,15 +34,14 @@ type alias ID =
 
 
 type alias ViewItem =
-  { id : ID
-  , title : String
+  { title : String
   , topLeft : Position
   }
 
 
 type alias Model =
-  { items : List ViewItem
-  , draggedItem : Maybe ( ViewItem, Position, Position )
+  { items : Dict ID ViewItem
+  , draggedItem : Maybe ( ID, ViewItem, Position, Position )
   , newItemTitle : String
   , styles : Styles
   }
@@ -61,10 +60,11 @@ init : Styles -> ( Model, Cmd Msg )
 init styles =
   let
     items =
-      [ ViewItem 1 "First" (Position 0 2)
-      , ViewItem 2 "Second" (Position 0 44)
-      , ViewItem 3 "Third" (Position 0 86)
-      ]
+      Dict.fromList
+        [ ( 1, ViewItem "First" (Position 0 2) )
+        , ( 2, ViewItem "Second" (Position 0 44) )
+        , ( 3, ViewItem "Third" (Position 0 86) )
+        ]
 
     model =
       { items = items
@@ -110,31 +110,23 @@ update action model =
           model ! [ Cmd.none ]
 
     DragStart id xy ->
-      let
-        _ =
-          Debug.log "DragStart" (toString ( id, xy ))
+      case Dict.get id model.items of
+        Just item ->
+          { model | items = Dict.remove id model.items, draggedItem = Just ( id, item, item.topLeft, xy ) } ! [ Cmd.none ]
 
-        findItem id item ( items, found ) =
-          if item.id == id then
-            ( items, Just ( item, item.topLeft, xy ) )
-          else
-            ( items ++ [ item ], found )
-
-        ( items, draggedItem ) =
-          List.foldl (findItem id) ( [], Nothing ) model.items
-      in
-        { model | items = items, draggedItem = draggedItem } ! [ Cmd.none ]
+        Nothing ->
+          model ! [ Cmd.none ]
 
     DragAt xy ->
       case model.draggedItem of
-        Just ( item, orig, dragStarted ) ->
+        Just ( id, item, orig, dragStarted ) ->
           let
             newY =
               orig.y + xy.y - dragStarted.y
 
             newTopLeft =
-              if newY > (List.length model.items) * 42 + 2 then
-                Position orig.x ((List.length model.items) * 42 + 2)
+              if newY > (Dict.size model.items) * 42 + 2 then
+                Position orig.x ((Dict.size model.items) * 42 + 2)
               else if newY >= 2 then
                 Position orig.x newY
               else
@@ -144,18 +136,19 @@ update action model =
               { item | topLeft = newTopLeft }
 
             items =
-              List.map
-                (\i ->
+              Dict.map
+                (\id i ->
                   if newTopLeft.y < i.topLeft.y + 20 then
                     let
+                      -- TODO: distinguish between going up and down
                       _ =
-                        Debug.log "Time to shift this one" (toString i.id)
+                        Debug.log "Time to shift this one" (toString id)
                     in
                       i
                   else if newTopLeft.y < i.topLeft.y + 40 then
                     let
                       _ =
-                        Debug.log "Just over" (toString i.id)
+                        Debug.log "Just over" (toString id)
                     in
                       i
                   else
@@ -163,15 +156,15 @@ update action model =
                 )
                 model.items
           in
-            { model | draggedItem = Just ( newItem, orig, dragStarted ) } ! [ Cmd.none ]
+            { model | draggedItem = Just ( id, newItem, orig, dragStarted ) } ! [ Cmd.none ]
 
         Nothing ->
           model ! [ Cmd.none ]
 
     DragEnd xy ->
       case model.draggedItem of
-        Just ( item, dragStarted, draggedTo ) ->
-          { model | items = model.items ++ [ item ], draggedItem = Nothing } ! [ Cmd.none ]
+        Just ( id, item, _, _ ) ->
+          { model | items = Dict.insert id item model.items, draggedItem = Nothing } ! [ Cmd.none ]
 
         Nothing ->
           model ! [ Cmd.none ]
@@ -196,8 +189,8 @@ view model =
   let
     items =
       case model.draggedItem of
-        Just ( item, dragStarted, draggedTo ) ->
-          model.items ++ [ item ]
+        Just ( id, item, _, _ ) ->
+          Dict.insert id item model.items
 
         Nothing ->
           model.items
@@ -220,7 +213,7 @@ view model =
           , div [ class styles.group ]
               [ groupTitle model
               , div [ style [ "position" => "relative", "width" => "100%" ] ]
-                  (List.map (todo styles) items)
+                  (List.map (todo styles) (Dict.toList items))
               ]
           ]
       ]
@@ -235,8 +228,8 @@ groupTitle model =
     div [ class styles.groupTitle ] [ text "Monday" ]
 
 
-todo : Styles -> ViewItem -> Html Msg
-todo styles item =
+todo : Styles -> ( ID, ViewItem ) -> Html Msg
+todo styles ( id, item ) =
   let
     topLeft =
       item.topLeft
@@ -247,7 +240,7 @@ todo styles item =
       , "top" => px topLeft.y
       ]
   in
-    div [ dataItemId item.id, onMouseDown, class styles.item, style inlineStyles ]
+    div [ dataItemId id, onMouseDown, class styles.item, style inlineStyles ]
       [ span [] [ text item.title ]
       ]
 
