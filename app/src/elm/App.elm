@@ -60,11 +60,9 @@ init : Styles -> ( Model, Cmd Msg )
 init styles =
   let
     items =
-      Dict.fromList
-        [ ( 1, ViewItem "First" (Position 0 2) )
-        , ( 2, ViewItem "Second" (Position 0 44) )
-        , ( 3, ViewItem "Third" (Position 0 86) )
-        ]
+      [ "First", "Second", "Third" ]
+        |> List.indexedMap (\i title -> ( i, ViewItem title { x = 0, y = i * itemBoxHeight + itemSpacing } ))
+        |> Dict.fromList
 
     model =
       { items = items
@@ -124,13 +122,19 @@ update action model =
             newY =
               orig.y + xy.y - dragStarted.y
 
+            minY =
+              itemSpacing
+
+            maxY =
+              (Dict.size model.items) * itemBoxHeight + itemSpacing
+
             newTopLeft =
-              if newY > (Dict.size model.items) * 42 + 2 then
-                Position orig.x ((Dict.size model.items) * 42 + 2)
-              else if newY >= 2 then
+              if newY > maxY then
+                Position orig.x maxY
+              else if newY >= minY then
                 Position orig.x newY
               else
-                Position orig.x 2
+                Position orig.x minY
 
             newItem =
               { item | topLeft = newTopLeft }
@@ -138,18 +142,21 @@ update action model =
             items =
               Dict.map
                 (\id i ->
-                  if newTopLeft.y < i.topLeft.y + 20 then
-                    let
-                      -- TODO: distinguish between going up and down
-                      _ =
-                        Debug.log "Time to shift this one" (toString id)
-                    in
-                      i
-                  else if newTopLeft.y < i.topLeft.y + 40 then
-                    let
-                      _ =
-                        Debug.log "Just over" (toString id)
-                    in
+                  if newY < orig.y then
+                    -- moving upwards
+                    if newTopLeft.y < i.topLeft.y + itemHeight // 2 then
+                      let
+                        _ =
+                          Debug.log "Time to shift this one" (toString id)
+                      in
+                        i
+                    else if newTopLeft.y < i.topLeft.y + itemHeight then
+                      let
+                        _ =
+                          Debug.log "Just over" (toString id)
+                      in
+                        i
+                    else
                       i
                   else
                     i
@@ -179,9 +186,19 @@ update action model =
   (,)
 
 
-px : Int -> String
-px amount =
-  (toString amount) ++ "px"
+itemHeight : Int
+itemHeight =
+  40
+
+
+itemSpacing : Int
+itemSpacing =
+  2
+
+
+itemBoxHeight : Int
+itemBoxHeight =
+  itemHeight + itemSpacing
 
 
 view : Model -> Html Msg
@@ -238,6 +255,7 @@ todo styles ( id, item ) =
       [ "position" => "absolute"
       , "left" => px topLeft.x
       , "top" => px topLeft.y
+      , "height" => px itemHeight
       ]
   in
     div [ dataItemId id, onMouseDown, class styles.item, style inlineStyles ]
@@ -272,3 +290,8 @@ dataItemIdDecoder =
 positionDecoder : Json.Decoder Position
 positionDecoder =
   Mouse.position
+
+
+px : Int -> String
+px amount =
+  (toString amount) ++ "px"
