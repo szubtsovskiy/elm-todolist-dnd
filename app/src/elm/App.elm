@@ -33,20 +33,16 @@ type alias ID =
   Int
 
 
-type Mode
-  = Default Position
-  | Dragging Position Position Position
-
-
 type alias ViewItem =
   { id : ID
   , title : String
-  , mode : Mode
+  , topLeft : Position
   }
 
 
 type alias Model =
   { items : List ViewItem
+  , draggedItem : Maybe ( ViewItem, Position, Position )
   , newItemTitle : String
   , styles : Styles
   }
@@ -65,13 +61,14 @@ init : Styles -> ( Model, Cmd Msg )
 init styles =
   let
     items =
-      [ ViewItem 1 "First" (Default (Position 0 2))
-      , ViewItem 2 "Second" (Default (Position 0 44))
-      , ViewItem 3 "Third" (Default (Position 0 86))
+      [ ViewItem 1 "First" (Position 0 2)
+      , ViewItem 2 "Second" (Position 0 44)
+      , ViewItem 3 "Third" (Position 0 86)
       ]
 
     model =
       { items = items
+      , draggedItem = Nothing
       , newItemTitle = ""
       , styles = styles
       }
@@ -81,21 +78,14 @@ init styles =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  let
-    onlyDragging item =
-      case item.mode of
-        Dragging _ _ _ ->
-          Just item
-
-        Default _ ->
-          Nothing
-  in
-    if List.length (List.filterMap onlyDragging model.items) > 0 then
+  case model.draggedItem of
+    Just _ ->
       Sub.batch
         [ Mouse.moves DragAt
         , Mouse.ups DragEnd
         ]
-    else
+
+    Nothing ->
       Sub.none
 
 
@@ -124,24 +114,36 @@ update action model =
         _ =
           Debug.log "DragStart" (toString ( id, xy ))
 
-        updateItem item =
+        findItem id item ( items, found ) =
           if item.id == id then
-            case item.mode of
-              Default current ->
-                { item | mode = Dragging current xy xy }
-
-              _ ->
-                item
+            ( items, Just ( item, item.topLeft, xy ) )
           else
-            item
+            ( items ++ [ item ], found )
+
+        ( items, draggedItem ) =
+          List.foldl (findItem id) ( [], Nothing ) model.items
       in
-        { model | items = List.map updateItem model.items } ! [ Cmd.none ]
+        { model | items = items, draggedItem = draggedItem } ! [ Cmd.none ]
 
     DragAt xy ->
-      model ! [ Cmd.none ]
+      case model.draggedItem of
+        Just ( item, orig, dragStarted ) ->
+          let
+            newItem =
+              { item | topLeft = Position orig.x (orig.y + xy.y - dragStarted.y) }
+          in
+            { model | draggedItem = Just ( newItem, orig, dragStarted ) } ! [ Cmd.none ]
+
+        Nothing ->
+          model ! [ Cmd.none ]
 
     DragEnd xy ->
-      model ! [ Cmd.none ]
+      case model.draggedItem of
+        Just ( item, dragStarted, draggedTo ) ->
+          { model | items = model.items ++ [ item ], draggedItem = Nothing } ! [ Cmd.none ]
+
+        Nothing ->
+          model ! [ Cmd.none ]
 
 
 
@@ -162,7 +164,12 @@ view : Model -> Html Msg
 view model =
   let
     items =
-      model.items
+      case model.draggedItem of
+        Just ( item, dragStarted, draggedTo ) ->
+          model.items ++ [ item ]
+
+        Nothing ->
+          model.items
 
     styles =
       model.styles
@@ -181,7 +188,7 @@ view model =
               []
           , div [ class styles.group ]
               [ groupTitle model
-              , div [ style [ "position" => "absolute", "width" => "100%" ] ]
+              , div [ style [ "position" => "relative", "width" => "100%" ] ]
                   (List.map (todo styles) items)
               ]
           ]
@@ -200,13 +207,13 @@ groupTitle model =
 todo : Styles -> ViewItem -> Html Msg
 todo styles item =
   let
-    position =
-      getPosition item
+    topLeft =
+      item.topLeft
 
     inlineStyles =
       [ "position" => "absolute"
-      , "left" => px position.x
-      , "top" => px position.y
+      , "left" => px topLeft.x
+      , "top" => px topLeft.y
       ]
   in
     div [ dataItemId item.id, onMouseDown, class styles.item, style inlineStyles ]
@@ -241,13 +248,3 @@ dataItemIdDecoder =
 positionDecoder : Json.Decoder Position
 positionDecoder =
   Mouse.position
-
-
-getPosition : ViewItem -> Position
-getPosition item =
-  case item.mode of
-    Default position ->
-      position
-
-    Dragging current dragStarted draggedTo ->
-      Position current.x (current.y + draggedTo.y - dragStarted.y)
