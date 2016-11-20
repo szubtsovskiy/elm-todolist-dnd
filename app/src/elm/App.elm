@@ -9,11 +9,6 @@ import Mouse exposing (Position)
 import String
 
 
--- TODO next: send drag/drop feedback to Elm to apply changes to model
--- TODO next: implement gif-like drag and drop items
--- TODO next: implement adding new items
-
-
 main : Program Styles Model Msg
 main =
   Html.programWithFlags
@@ -62,6 +57,8 @@ type Msg
   | SetNewItemTitle String
   | KeyDown Int
   | DragStart ID Position
+  | DragAt Position
+  | DragEnd Position
 
 
 init : Styles -> ( Model, Cmd Msg )
@@ -84,7 +81,22 @@ init styles =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  let
+    onlyDragging item =
+      case item.mode of
+        Dragging _ _ _ ->
+          Just item
+
+        Default _ ->
+          Nothing
+  in
+    if List.length (List.filterMap onlyDragging model.items) > 0 then
+      Sub.batch
+        [ Mouse.moves DragAt
+        , Mouse.ups DragEnd
+        ]
+    else
+      Sub.none
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -107,12 +119,29 @@ update action model =
         _ ->
           model ! [ Cmd.none ]
 
-    DragStart id position ->
+    DragStart id xy ->
       let
         _ =
-          Debug.log "DragStart" (toString ( id, position ))
+          Debug.log "DragStart" (toString ( id, xy ))
+
+        updateItem item =
+          if item.id == id then
+            case item.mode of
+              Default current ->
+                { item | mode = Dragging current xy xy }
+
+              _ ->
+                item
+          else
+            item
       in
-        model ! [ Cmd.none ]
+        { model | items = List.map updateItem model.items } ! [ Cmd.none ]
+
+    DragAt xy ->
+      model ! [ Cmd.none ]
+
+    DragEnd xy ->
+      model ! [ Cmd.none ]
 
 
 
