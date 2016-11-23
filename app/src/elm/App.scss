@@ -29,6 +29,7 @@ legend {
   text-align: center;
   color: lightgray;
   font-size: 0.75em;
+  user-select: none;
 }
 
 .group {
@@ -44,33 +45,28 @@ legend {
   color: white;
   font-size: 0.75em;
   letter-spacing: 0.1em;
+  user-select: none;
 }
 
 .item {
   background: white;
   border-bottom: 1px lightgray solid;
-  height: 40px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
   padding: 5px 15px;
   width: 100%;
+  cursor: move;
+  user-select: none;
+  transition: top 0.2s ease-out;
+
+  &.dragged {
+    z-index: 2;
+    transition: none;
+  }
+
 }
 
-.subTask {
-  width: calc(100% - 30px);
-  margin-left: 30px;
-}
-
-.dragged {
-  background-color: lightgray;
-  opacity: 0.5;
-  color: transparent;
-}
-
-.hidden {
-  display: none;
-}
 
 .input {
   @extend .form-control;
