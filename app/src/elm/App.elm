@@ -3,6 +3,7 @@ module App exposing (main)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, on, keyCode)
+import Html.Keyed as Keyed
 import Json.Decode as Json
 import Dict exposing (Dict)
 import Mouse exposing (Position)
@@ -60,7 +61,7 @@ init : Styles -> ( Model, Cmd Msg )
 init styles =
   let
     items =
-      [ "First", "Second", "Third" ]
+      [ "First", "Second", "Third", "Fourth", "Fifth" ]
         |> List.indexedMap (\i title -> ( i, ViewItem title { x = 0, y = i * itemBoxHeight + itemSpacing } ))
         |> Dict.fromList
 
@@ -253,7 +254,7 @@ view model =
               []
           , div [ class styles.group ]
               [ groupTitle model
-              , div [ style [ "position" => "relative", "width" => "100%" ] ] items
+              , Keyed.node "div" [ style [ "position" => "relative", "width" => "100%" ] ] items
               ]
           ]
       ]
@@ -268,7 +269,7 @@ groupTitle model =
     div [ class styles.groupTitle ] [ text "Monday" ]
 
 
-todo : Styles -> Bool -> ( ID, ViewItem ) -> Html Msg
+todo : Styles -> Bool -> ( ID, ViewItem ) -> ( String, Html Msg )
 todo styles dragged ( id, item ) =
   let
     topLeft =
@@ -287,9 +288,11 @@ todo styles dragged ( id, item ) =
       else
         styles.item
   in
-    div [ dataItemId id, onMouseDown, class classes, style inlineStyles ]
-      [ span [] [ text item.title ]
-      ]
+    ( toString id
+    , div [ dataItemId id, onMouseDown, class classes, style inlineStyles ]
+        [ span [] [ text item.title ]
+        ]
+    )
 
 
 onKeyDown : (Int -> action) -> Attribute action
