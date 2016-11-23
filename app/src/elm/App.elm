@@ -99,7 +99,17 @@ update action model =
     KeyDown code ->
       case code of
         13 ->
-          { model | newItemTitle = "" } ! [ Cmd.none ]
+          if String.length model.newItemTitle > 0 then
+            let
+              itemCount =
+                Dict.size model.items
+
+              newItem =
+                ViewItem model.newItemTitle { x = 0, y = itemCount * itemBoxHeight + itemSpacing }
+            in
+              { model | newItemTitle = "", items = Dict.insert itemCount newItem model.items } ! [ Cmd.none ]
+          else
+            model ! [ Cmd.none ]
 
         27 ->
           { model | newItemTitle = "" } ! [ Cmd.none ]

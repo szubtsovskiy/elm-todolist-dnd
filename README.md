@@ -7,8 +7,6 @@ Proof of concept implementation of simple todo list with draggable items.
 This is a simple Elm application allowing to add items to a todo list and reorder them
 by dragging them over other items and dropping.
 
-Items are saved in the browser's local storage. Saving and fetching stuff is implemented as separate module to easily replace storage facility with something else.
-
 [Demo on Heroku] (https://elm-todolist-dnd.herokuapp.com)
 
 ### Requirements
