@@ -11,7 +11,7 @@ by dragging them over other items and dropping.
 
 ### Requirements
 
-* Elm 0.17.1-0.18.0
+* Elm 0.18.0-0.19.0
 
 ### Development
 
