@@ -128,6 +128,9 @@ update action model =
             maxY =
               (Dict.size model.items) * itemBoxHeight + itemSpacing
 
+            prevTopLeft =
+              item.topLeft
+
             newTopLeft =
               if newY > maxY then
                 Position orig.x maxY
@@ -136,45 +139,62 @@ update action model =
               else
                 Position orig.x minY
 
-            newItem =
+            newDraggedItem =
               { item | topLeft = newTopLeft }
 
-            items =
-              Dict.map
-                (\id i ->
-                  if newY < orig.y then
-                    -- moving upwards
-                    if newTopLeft.y < i.topLeft.y + itemHeight // 2 then
-                      let
-                        _ =
-                          Debug.log "Time to shift this one" (toString id)
-                      in
-                        i
-                    else if newTopLeft.y < i.topLeft.y + itemHeight then
-                      let
-                        _ =
-                          Debug.log "Just over" (toString id)
-                      in
-                        i
-                    else
-                      i
-                  else
-                    i
-                )
-                model.items
+            newItems =
+              Dict.map (over newTopLeft prevTopLeft) model.items
           in
-            { model | draggedItem = Just ( id, newItem, orig, dragStarted ) } ! [ Cmd.none ]
+            { model | items = newItems, draggedItem = Just ( id, newDraggedItem, orig, dragStarted ) } ! [ Cmd.none ]
 
         Nothing ->
           model ! [ Cmd.none ]
 
     DragEnd xy ->
       case model.draggedItem of
-        Just ( id, item, _, _ ) ->
-          { model | items = Dict.insert id item model.items, draggedItem = Nothing } ! [ Cmd.none ]
+        Just ( id, item, orig, _ ) ->
+          let
+            newY =
+              item.topLeft.y
+
+            adjustedY =
+              if newY > orig.y + itemBoxHeight // 2 || newY < orig.y - itemBoxHeight // 2 then
+                (toFloat newY)
+                  / (toFloat itemBoxHeight)
+                  |> round
+                  |> (*) itemBoxHeight
+                  |> (+) itemSpacing
+              else
+                orig.y
+
+            droppedItem =
+              { item | topLeft = Position item.topLeft.x adjustedY }
+          in
+            { model | items = Dict.insert id droppedItem model.items, draggedItem = Nothing } ! [ Cmd.none ]
 
         Nothing ->
           model ! [ Cmd.none ]
+
+
+over : Position -> Position -> ID -> ViewItem -> ViewItem
+over newTopLeft prevTopLeft _ item =
+  if newTopLeft.y < prevTopLeft.y then
+    -- moving upwards
+    if item.topLeft.y <= newTopLeft.y && newTopLeft.y <= item.topLeft.y + itemHeight // 2 then
+      { item | topLeft = Position item.topLeft.x (item.topLeft.y + itemBoxHeight) }
+    else if newTopLeft.y < item.topLeft.y + itemHeight then
+      -- TODO: mark i as hovered to highlight it in view
+      item
+    else
+      item
+  else if newTopLeft.y <= item.topLeft.y && newTopLeft.y + itemHeight >= item.topLeft.y + itemHeight // 2 then
+    -- moving downwards
+    { item | topLeft = Position item.topLeft.x (item.topLeft.y - itemBoxHeight) }
+  else if newTopLeft.y <= item.topLeft.y then
+    item
+    -- over
+  else
+    item
 
 
 
@@ -230,6 +250,7 @@ view model =
           , div [ class styles.group ]
               [ groupTitle model
               , div [ style [ "position" => "relative", "width" => "100%" ] ]
+                  -- TODO: apply .dragged class
                   (List.map (todo styles) (Dict.toList items))
               ]
           ]
