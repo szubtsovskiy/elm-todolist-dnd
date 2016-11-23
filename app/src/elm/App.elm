@@ -22,10 +22,10 @@ main =
 type alias Styles =
   { container : String
   , item : String
-  , subTask : String
   , group : String
   , groupTitle : String
   , input : String
+  , dragged : String
   }
 
 
@@ -182,17 +182,11 @@ over newTopLeft prevTopLeft _ item =
     -- moving upwards
     if item.topLeft.y <= newTopLeft.y && newTopLeft.y <= item.topLeft.y + itemHeight // 2 then
       { item | topLeft = Position item.topLeft.x (item.topLeft.y + itemBoxHeight) }
-    else if newTopLeft.y < item.topLeft.y + itemHeight then
-      -- TODO: mark i as hovered to highlight it in view
-      item
     else
       item
   else if newTopLeft.y <= item.topLeft.y && newTopLeft.y + itemHeight >= item.topLeft.y + itemHeight // 2 then
     -- moving downwards
     { item | topLeft = Position item.topLeft.x (item.topLeft.y - itemBoxHeight) }
-  else if newTopLeft.y <= item.topLeft.y then
-    item
-    -- over
   else
     item
 
@@ -227,10 +221,10 @@ view model =
     items =
       case model.draggedItem of
         Just ( id, item, _, _ ) ->
-          Dict.insert id item model.items
+          (List.map (todo styles False) (Dict.toList model.items)) ++ [ todo styles True ( id, item ) ]
 
         Nothing ->
-          model.items
+          (List.map (todo styles False) (Dict.toList model.items))
 
     styles =
       model.styles
@@ -249,9 +243,7 @@ view model =
               []
           , div [ class styles.group ]
               [ groupTitle model
-              , div [ style [ "position" => "relative", "width" => "100%" ] ]
-                  -- TODO: apply .dragged class
-                  (List.map (todo styles) (Dict.toList items))
+              , div [ style [ "position" => "relative", "width" => "100%" ] ] items
               ]
           ]
       ]
@@ -266,8 +258,8 @@ groupTitle model =
     div [ class styles.groupTitle ] [ text "Monday" ]
 
 
-todo : Styles -> ( ID, ViewItem ) -> Html Msg
-todo styles ( id, item ) =
+todo : Styles -> Bool -> ( ID, ViewItem ) -> Html Msg
+todo styles dragged ( id, item ) =
   let
     topLeft =
       item.topLeft
@@ -278,8 +270,14 @@ todo styles ( id, item ) =
       , "top" => px topLeft.y
       , "height" => px itemHeight
       ]
+
+    classes =
+      if dragged then
+        styles.item ++ " " ++ styles.dragged
+      else
+        styles.item
   in
-    div [ dataItemId id, onMouseDown, class styles.item, style inlineStyles ]
+    div [ dataItemId id, onMouseDown, class classes, style inlineStyles ]
       [ span [] [ text item.title ]
       ]
 

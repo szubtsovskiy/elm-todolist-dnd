@@ -58,22 +58,13 @@ legend {
   width: 100%;
   cursor: move;
   user-select: none;
+
+  &.dragged {
+    z-index: 2;
+  }
+
 }
 
-.subTask {
-  width: calc(100% - 30px);
-  margin-left: 30px;
-}
-
-.dragged {
-  background-color: lightgray;
-  opacity: 0.5;
-  color: transparent;
-}
-
-.hidden {
-  display: none;
-}
 
 .input {
   @extend .form-control;
