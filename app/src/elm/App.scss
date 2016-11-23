@@ -58,9 +58,11 @@ legend {
   width: 100%;
   cursor: move;
   user-select: none;
+  transition: top 0.2s ease-out;
 
   &.dragged {
     z-index: 2;
+    transition: none;
   }
 
 }
