@@ -27,8 +27,13 @@ var commonConfig = {
   module: {
     loaders: [
       {
+        test :/\.js$/,
+        exclude: /node_modules/,
+        loader: 'babel?presets=es2015'
+      },
+      {
         test: /\.(eot|ttf|woff|woff2|svg)(\?.+)?$/,
-        loader: 'file-loader'
+        loader: 'file'
       }
     ]
   },

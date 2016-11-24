@@ -1,6 +1,7 @@
-var App = require('./elm/App').App;
-app = App.embed(document.getElementById('content'));
+import firebase from 'firebase';
+import {App} from './elm/App';
 
+App.embed(document.getElementById('content'));
 
 var config = {
   apiKey: process.env.FIREBASE_API_KEY,
