@@ -7,3 +7,4 @@ repl-temp-*
 
 tmp
 node_modules
+dist
