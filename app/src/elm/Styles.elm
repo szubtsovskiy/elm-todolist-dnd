@@ -11,6 +11,7 @@ type Class
   | Title
   | Item
   | Dragged
+  | NewItemInput
 
 
 css : Stylesheet
@@ -19,20 +20,28 @@ css =
     [ body
         [ margin2 (px 20) zero
         , backgroundColor (hex "#f3f5f6")
+        , fontSize (px 14)
         ]
     , (.) Container
         [ marginTop (px 15)
         , width (px 600)
         , children
             [ fieldset
-                [ borderLeft zero
-                , borderRight zero
-                , borderBottom zero
+                [ padding zero
+                , margin zero
+                , border zero
                 , borderTop3 (px 1) solid lightGray
                 , width (pct 100)
                 , children
                     [ legend
-                        [ textTransform uppercase
+                        [ display block
+                        , width (pct 100)
+                        , padding zero
+                        , marginBottom (px 20)
+                        , lineHeight inherit
+                        , border zero
+                        , borderBottom3 (px 1) solid (hex "#e5e5e5")
+                        , textTransform uppercase
                         , textAlign center
                         , color lightGray
                         , fontSize (em 0.75)
@@ -73,6 +82,14 @@ css =
             [ zIndex 2
             , transition none
             ]
+        ]
+    , (.) NewItemInput
+        [ display block
+        , width (pct 100)
+        , height (px 34)
+        , padding2 (px 6) (px 12)
+        , fontSize (px 14)
+        , lineHeight (num (20.0 / 14.0))
         ]
     ]
 
@@ -115,10 +132,6 @@ userSelect arg =
 transition : Value a -> Mixin
 transition arg =
   property "transition" arg.value
-
-
-
---transition3 :
 
 
 zIndex : Int -> Mixin
