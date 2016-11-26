@@ -14,6 +14,10 @@ type Class
   | NewItemInput
 
 
+
+-- TODO: what's missing from Bootstrap?
+
+
 css : Stylesheet
 css =
   (stylesheet)
@@ -90,12 +94,12 @@ css =
         , padding2 (px 6) (px 12)
         , fontSize (px 14)
         , lineHeight (num (20.0 / 14.0))
+          -- TODO: other properties
         ]
     ]
 
 
 
--- TODO: form-control from Bootstrap
 -- COLORS
 
 
