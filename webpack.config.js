@@ -25,7 +25,6 @@ var commonConfig = {
   },
 
   module: {
-    noParse: /\.elm$/,
     loaders: [
       {
         test: /\.(eot|ttf|woff|woff2|svg)(\?.+)?$/,
@@ -54,7 +53,8 @@ if (TARGET_ENV === 'development') {
 
     entry: [
       'webpack-dev-server/client?http://localhost:8080',
-      path.join(__dirname, 'app/src/index.js')
+      './app/src/index.js',
+      '!style!css!postcss!elm-css-webpack!./app/src/elm/Stylesheets.elm'
     ],
 
     devServer: {
@@ -68,26 +68,6 @@ if (TARGET_ENV === 'development') {
           test: /\.elm$/,
           exclude: [/elm-stuff/, /node_modules/],
           loader: 'elm-hot!elm-webpack?verbose=true&warn=true&cache=false'
-        },
-        {
-          test: /\.(css|scss)$/,
-          exclude: p => p.startsWith(path.resolve('app/styles')),
-          loaders: [
-            'style-loader',
-            'css-loader?modules&localIdentName=[name]__[local]',
-            'postcss-loader',
-            'sass-loader'
-          ]
-        },
-        {
-          test: /\.(css|scss)$/,
-          include: p => p.startsWith(path.resolve('app/styles')),
-          loaders: [
-            'style-loader',
-            'css-loader',
-            'postcss-loader',
-            'sass-loader'
-          ]
         }
       ]
     }
@@ -101,31 +81,24 @@ if (TARGET_ENV === 'production') {
 
   module.exports = merge(commonConfig, {
 
-    entry: path.join(__dirname, 'app/src/index.js'),
+    entry: [
+      './app/src/index.js',
+      './app/src/elm/Stylesheets.elm'
+    ],
 
     module: {
       loaders: [
         {
           test: /\.elm$/,
-          exclude: [/elm-stuff/, /node_modules/],
+          exclude: [/elm-stuff/, /node_modules/, /Stylesheets.elm/],
           loader: 'elm-webpack'
         },
         {
-          test: /\.(css|scss)$/,
-          exclude: p => p.startsWith(path.resolve('app/styles')),
-          loader: ExtractTextPlugin.extract('style-loader', [
-            'css-loader?modules&localIdentName=[name]__[local]',
-            'postcss-loader',
-            'sass-loader'
-          ])
-        },
-        {
-          test: /\.(css|scss)$/,
-          include: p => p.startsWith(path.resolve('app/styles')),
-          loader: ExtractTextPlugin.extract('style-loader', [
-            'css-loader',
-            'postcss-loader',
-            'sass-loader'
+          test: /Stylesheets.elm$/,
+          loader: ExtractTextPlugin.extract('style', [
+            'css',
+            'postcss',
+            'elm-css-webpack'
           ])
         }
       ]
