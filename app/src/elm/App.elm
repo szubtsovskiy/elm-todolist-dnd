@@ -109,11 +109,16 @@ update action model =
           model ! [ Cmd.none ]
 
     DragStart id xy ->
-      case Dict.get id model.items of
-        Just item ->
-          { model | items = Dict.remove id model.items, draggedItem = Just ( id, item, item.topLeft, xy ) } ! [ Cmd.none ]
-
+      case model.draggedItem of
         Nothing ->
+          case Dict.get id model.items of
+            Just item ->
+              { model | items = Dict.remove id model.items, draggedItem = Just ( id, item, item.topLeft, xy ) } ! [ Cmd.none ]
+
+            Nothing ->
+              model ! [ Cmd.none ]
+
+        Just _ ->
           model ! [ Cmd.none ]
 
     DragAt xy ->
