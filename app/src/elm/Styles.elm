@@ -2,31 +2,37 @@ module Styles exposing (..)
 
 import Css exposing (..)
 import Css.Elements exposing (body, li, fieldset, legend)
-import Css.Namespace exposing (namespace)
 
 
 type Class
   = Container
+  | ContentWrapper
   | Group
-  | Title
+  | GroupTitle
   | Item
   | Dragged
   | NewItemInput
 
 
-
--- TODO: what's missing from Bootstrap?
-
-
 css : Stylesheet
 css =
-  (stylesheet)
-    [ body
+  stylesheet
+    [ everything
+        [ boxSizing borderBox
+        , before [ boxSizing borderBox ]
+        , after [ boxSizing borderBox ]
+        ]
+    , body
         [ margin2 (px 20) zero
         , backgroundColor (hex "#f3f5f6")
         , fontSize (px 14)
+        , fontFamilies [ "Helvetica Neue", "Helvetica", "Arial", "sans-serif" ]
         ]
     , (.) Container
+        [ displayFlex
+        , property "justify-content" "center"
+        ]
+    , (.) ContentWrapper
         [ marginTop (px 15)
         , width (px 600)
         , children
@@ -59,7 +65,7 @@ css =
         [ margin2 (px 15) zero
         , width (pct 100)
         , children
-            [ (.) Title
+            [ (.) GroupTitle
                 [ backgroundColor darkGray
                 , padding (px 5)
                 , textTransform uppercase
@@ -89,12 +95,19 @@ css =
         ]
     , (.) NewItemInput
         [ display block
+        , boxSizing borderBox
         , width (pct 100)
         , height (px 34)
         , padding2 (px 6) (px 12)
+        , margin zero
         , fontSize (px 14)
         , lineHeight (num (20.0 / 14.0))
-          -- TODO: other properties
+        , backgroundColor white
+        , border3 (px 1) solid (hex "#ccc")
+        , borderRadius (px 4)
+        , boxShadow5 inset zero (px 1) (px 1) (rgba 0 0 0 0.075)
+        , property "transition" "border-color .15s ease-in-out,box-shadow .15s ease-in-out"
+        , color (hex "#555")
         ]
     ]
 

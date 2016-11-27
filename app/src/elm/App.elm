@@ -8,26 +8,18 @@ import Json.Decode as Json
 import Dict exposing (Dict)
 import Mouse exposing (Position)
 import String
+import Html.CssHelpers as CssHelpers
+import Styles
 
 
-main : Program Styles Model Msg
+main : Program Never Model Msg
 main =
-  Html.programWithFlags
+  Html.program
     { init = init
     , view = view
     , update = update
     , subscriptions = subscriptions
     }
-
-
-type alias Styles =
-  { container : String
-  , item : String
-  , group : String
-  , groupTitle : String
-  , input : String
-  , dragged : String
-  }
 
 
 type alias ID =
@@ -44,7 +36,6 @@ type alias Model =
   { items : Dict ID ViewItem
   , draggedItem : Maybe ( ID, ViewItem, Position, Position )
   , newItemTitle : String
-  , styles : Styles
   }
 
 
@@ -57,8 +48,8 @@ type Msg
   | DragEnd Position
 
 
-init : Styles -> ( Model, Cmd Msg )
-init styles =
+init : ( Model, Cmd Msg )
+init =
   let
     items =
       [ "First", "Second", "Third", "Fourth", "Fifth" ]
@@ -69,7 +60,6 @@ init styles =
       { items = items
       , draggedItem = Nothing
       , newItemTitle = ""
-      , styles = styles
       }
   in
     model ! [ Cmd.none ]
@@ -206,7 +196,11 @@ over newTopLeft prevTopLeft _ item =
 -- VIEW
 
 
-(=>) : String -> String -> ( String, String )
+{ id, class, classList } =
+  CssHelpers.withNamespace ""
+
+
+(=>) : a -> b -> ( a, b )
 (=>) =
   (,)
 
@@ -232,29 +226,28 @@ view model =
     items =
       case model.draggedItem of
         Just ( id, item, _, _ ) ->
-          (List.map (todo styles False) (Dict.toList model.items)) ++ [ todo styles True ( id, item ) ]
+          (List.map (todo False) (Dict.toList model.items)) ++ [ todo True ( id, item ) ]
 
         Nothing ->
-          (List.map (todo styles False) (Dict.toList model.items))
-
-    styles =
-      model.styles
+          (List.map (todo False) (Dict.toList model.items))
   in
-    div [ class styles.container ]
-      [ fieldset []
-          [ legend [] [ text "Week 47" ]
-          , input
-              [ type_ "text"
-              , class styles.input
-              , placeholder "To do..."
-              , onInput SetNewItemTitle
-              , onKeyDown KeyDown
-              , value model.newItemTitle
-              ]
-              []
-          , div [ class styles.group ]
-              [ groupTitle model
-              , Keyed.node "div" [ style [ "position" => "relative", "width" => "100%" ] ] items
+    div [ class [ Styles.Container ] ]
+      [ div [ class [ Styles.ContentWrapper ] ]
+          [ fieldset []
+              [ legend [] [ text "Week 47" ]
+              , input
+                  [ type_ "text"
+                  , class [ Styles.NewItemInput ]
+                  , placeholder "To do..."
+                  , onInput SetNewItemTitle
+                  , onKeyDown KeyDown
+                  , value model.newItemTitle
+                  ]
+                  []
+              , div [ class [ Styles.Group ] ]
+                  [ groupTitle model
+                  , Keyed.node "div" [ style [ "position" => "relative", "width" => "100%" ] ] items
+                  ]
               ]
           ]
       ]
@@ -262,15 +255,11 @@ view model =
 
 groupTitle : Model -> Html Msg
 groupTitle model =
-  let
-    styles =
-      model.styles
-  in
-    div [ class styles.groupTitle ] [ text "Monday" ]
+  div [ class [ Styles.GroupTitle ] ] [ text "Monday" ]
 
 
-todo : Styles -> Bool -> ( ID, ViewItem ) -> ( String, Html Msg )
-todo styles dragged ( id, item ) =
+todo : Bool -> ( ID, ViewItem ) -> ( String, Html Msg )
+todo dragged ( id, item ) =
   let
     topLeft =
       item.topLeft
@@ -283,13 +272,12 @@ todo styles dragged ( id, item ) =
       ]
 
     classes =
-      if dragged then
-        styles.item ++ " " ++ styles.dragged
-      else
-        styles.item
+      [ Styles.Item => True
+      , Styles.Dragged => dragged
+      ]
   in
     ( toString id
-    , div [ dataItemId id, onMouseDown, class classes, style inlineStyles ]
+    , div [ dataItemId id, onMouseDown, classList classes, style inlineStyles ]
         [ span [] [ text item.title ]
         ]
     )

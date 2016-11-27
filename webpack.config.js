@@ -71,26 +71,6 @@ if (TARGET_ENV === 'development') {
         {
           test: /Stylesheets.elm$/,
           loader: 'style!css!postcss!elm-css-webpack'
-        },
-        {
-          test: /\.(css|scss)$/,
-          exclude: p => p.startsWith(path.resolve('app/styles')),
-          loaders: [
-            'style-loader',
-            'css-loader?modules&localIdentName=[name]__[local]',
-            'postcss-loader',
-            'sass-loader'
-          ]
-        },
-        {
-          test: /\.(css|scss)$/,
-          include: p => p.startsWith(path.resolve('app/styles')),
-          loaders: [
-            'style-loader',
-            'css-loader',
-            'postcss-loader',
-            'sass-loader'
-          ]
         }
       ]
     }
@@ -119,24 +99,6 @@ if (TARGET_ENV === 'production') {
             'css',
             'postcss',
             'elm-css-webpack'
-          ])
-        },
-        {
-          test: /\.(css|scss)$/,
-          exclude: p => p.startsWith(path.resolve('app/styles')),
-          loader: ExtractTextPlugin.extract('style-loader', [
-            'css-loader?modules&localIdentName=[name]__[local]',
-            'postcss-loader',
-            'sass-loader'
-          ])
-        },
-        {
-          test: /\.(css|scss)$/,
-          include: p => p.startsWith(path.resolve('app/styles')),
-          loader: ExtractTextPlugin.extract('style-loader', [
-            'css-loader',
-            'postcss-loader',
-            'sass-loader'
           ])
         }
       ]
