@@ -1,12 +1,12 @@
 // Code borrowed shamelessly from https://github.com/moarwick/elm-webpack-starter
 
-var path = require('path');
 var webpack = require('webpack');
 var merge = require('webpack-merge');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var autoprefixer = require('autoprefixer');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
+require('dotenv').config();
 
 // determine build env
 var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'development';
@@ -15,7 +15,7 @@ var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'd
 var commonConfig = {
 
   output: {
-    path: path.resolve(__dirname, 'dist/'),
+    path: './dist',
     filename: '[hash].js',
   },
 
