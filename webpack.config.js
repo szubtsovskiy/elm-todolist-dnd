@@ -53,7 +53,8 @@ if (TARGET_ENV === 'development') {
 
     entry: [
       'webpack-dev-server/client?http://localhost:8080',
-      path.join(__dirname, 'app/src/index.js')
+      './app/src/index.js',
+      '!style!css!postcss!elm-css-webpack!./app/src/elm/Stylesheets.elm'
     ],
 
     devServer: {
@@ -65,12 +66,8 @@ if (TARGET_ENV === 'development') {
       loaders: [
         {
           test: /\.elm$/,
-          exclude: [/elm-stuff/, /node_modules/, /Stylesheets.elm/],
+          exclude: [/elm-stuff/, /node_modules/],
           loader: 'elm-hot!elm-webpack?verbose=true&warn=true&cache=false'
-        },
-        {
-          test: /Stylesheets.elm$/,
-          loader: 'style!css!postcss!elm-css-webpack'
         }
       ]
     }
@@ -84,7 +81,10 @@ if (TARGET_ENV === 'production') {
 
   module.exports = merge(commonConfig, {
 
-    entry: path.join(__dirname, 'app/src/index.js'),
+    entry: [
+      './app/src/index.js',
+      './app/src/elm/Stylesheets.elm'
+    ],
 
     module: {
       loaders: [
