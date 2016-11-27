@@ -25,7 +25,6 @@ var commonConfig = {
   },
 
   module: {
-    noParse: /\.elm$/,
     loaders: [
       {
         test: /\.(eot|ttf|woff|woff2|svg)(\?.+)?$/,
@@ -66,8 +65,12 @@ if (TARGET_ENV === 'development') {
       loaders: [
         {
           test: /\.elm$/,
-          exclude: [/elm-stuff/, /node_modules/],
+          exclude: [/elm-stuff/, /node_modules/, /Stylesheets.elm/],
           loader: 'elm-hot!elm-webpack?verbose=true&warn=true&cache=false'
+        },
+        {
+          test: /Stylesheets.elm$/,
+          loader: 'style!css!postcss!elm-css-webpack'
         },
         {
           test: /\.(css|scss)$/,
@@ -107,8 +110,16 @@ if (TARGET_ENV === 'production') {
       loaders: [
         {
           test: /\.elm$/,
-          exclude: [/elm-stuff/, /node_modules/],
+          exclude: [/elm-stuff/, /node_modules/, /Stylesheets.elm/],
           loader: 'elm-webpack'
+        },
+        {
+          test: /Stylesheets.elm$/,
+          loader: ExtractTextPlugin.extract('style', [
+            'css',
+            'postcss',
+            'elm-css-webpack'
+          ])
         },
         {
           test: /\.(css|scss)$/,

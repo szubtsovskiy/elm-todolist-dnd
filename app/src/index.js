@@ -1,4 +1,5 @@
 require('../styles/main.scss');
+require ('./elm/Stylesheets.elm');
 
 // inject bundled Elm app into div#content
 var App = require('./elm/App').App;
