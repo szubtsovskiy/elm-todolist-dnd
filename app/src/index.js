@@ -1,7 +1,9 @@
 import firebase from 'firebase';
 import {App} from './elm/App';
+import {App2} from './elm/App2';
 
-App.embed(document.getElementById('content'));
+App.embed(document.getElementById('app'));
+App2.embed(document.getElementById('app2'));
 
 var config = {
   apiKey: process.env.FIREBASE_API_KEY,
